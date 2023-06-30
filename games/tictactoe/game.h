@@ -91,7 +91,7 @@ template<std::floating_point F>
 	}
 	for (std::size_t i = 16; i < 25; i++)
 	{
-		dest[i] = (st >> i) & 1;
+		dest[i - 5] = (st >> i) & 1;
 	}
 }
 
