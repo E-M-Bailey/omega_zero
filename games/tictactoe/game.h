@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <cstdint>
+#include <span>
 #include <tuple>
 #include <utility>
 
@@ -14,63 +15,66 @@ struct game
 	// 0 1 2
 	// 3 4 5
 	// 6 7 8
-	typedef std::pair<std::uint16_t, std::uint16_t> state;
 
-	static constexpr int MAX_BRANCH = 9;
-	static constexpr int DIMENSIONS = 18;
+	// bits [0, 9): player 1, [16, 25): player 2
+	typedef std::uint32_t state;
 
-	[[nodiscard]] static constexpr state *moves(state const &st, state *dest) noexcept;
+	static constexpr std::size_t MAX_BRANCH = 9;
+	static constexpr std::size_t DIMENSIONS = 18;
+
+	[[nodiscard]] static constexpr std::size_t moves(state st, std::span<state, MAX_BRANCH> dest) noexcept;
 
 	[[nodiscard]] static constexpr void flip(state &st) noexcept;
 
-	[[nodiscard]] static constexpr int winner(state const &st) noexcept;
+	[[nodiscard]] static constexpr int winner(state st) noexcept;
 
 	template<std::floating_point F>
-	[[nodiscard]] static constexpr void encode(state const &st, F *dest) noexcept;
+	[[nodiscard]] static constexpr void encode(state st, std::span<F, DIMENSIONS> dest) noexcept;
 
 private:
-	static constexpr std::uint16_t WINS[]
+	static constexpr std::uint32_t WINS[]
 	{
-		0b000'000'111,
-		0b000'111'000,
-		0b111'000'111,
-		0b001'001'001,
-		0b010'010'010,
-		0b100'100'100,
-		0b001'010'100,
-		0b100'010'001
+		0b000'000'111u,
+		0b000'111'000u,
+		0b111'000'000u,
+		0b001'001'001u,
+		0b010'010'010u,
+		0b100'100'100u,
+		0b001'010'100u,
+		0b100'010'001u
 	};
 };
 
-[[nodiscard]] constexpr game::state *game::moves(game::state const &st, game::state *dest) noexcept
+[[nodiscard]] constexpr std::size_t game::moves(game::state st, std::span<game::state, game::MAX_BRANCH> dest) noexcept
 {
-	for (int i = 0; i < 9; i++)
+	std::size_t pos = 0;
+	for (std::size_t i = 0; i < 9; i++)
 	{
-		std::uint16_t bit = 1 << i;
-		if (((st.first | st.second) & bit) == 0)
+		state bits = 0x10001u << i;
+		if ((st & bits) == 0)
 		{
-			dest->first = st.first | bit;
-			dest->second = st.second;
-			dest++;
+			dest[pos] = st | (bits & 0xffffu);
+			pos++;
 		}
 	}
-	return dest;
+	return pos;
 }
 
 [[nodiscard]] constexpr void game::flip(game::state &st)
 {
-	std::swap(st.first, st.second);
+	st = (st >> 16) | (st << 16);
 }
 
-[[nodiscard]] constexpr int game::winner(game::state const &st)
+[[nodiscard]] constexpr int game::winner(game::state st)
 {
-	for (std::uint16_t mask : WINS)
+	state st2 = st >> 16;
+	for (std::uint32_t mask : WINS)
 	{
-		if ((st.first & mask) == mask)
+		if ((st & mask) == mask)
 		{
 			return 1;
 		}
-		if ((st.second & mask) == mask)
+		if ((st2 & mask) == mask)
 		{
 			return -1;
 		}
@@ -79,15 +83,15 @@ private:
 }
 
 template<std::floating_point F>
-[[nodiscard]] constexpr void game::encode(game::state const &st, F *dest) noexcept
+[[nodiscard]] constexpr void game::encode(game::state st, std::span<F, game::DIMENSIONS> dest) noexcept
 {
-	for (int i = 0; i < 9; i++)
+	for (std::size_t i = 0; i < 9; i++)
 	{
-		*dest++ = (st.first >> i) & 1;
+		dest[i] = (st >> i) & 1;
 	}
-	for (int i = 0; i < 9; i++)
+	for (std::size_t i = 16; i < 25; i++)
 	{
-		*dest++ = (st.second >> i) & 1;
+		dest[i] = (st >> i) & 1;
 	}
 }
 
