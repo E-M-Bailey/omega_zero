@@ -4,6 +4,7 @@
 #include <concepts>
 #include <cstdint>
 #include <span>
+#include <string>
 #include <tuple>
 #include <utility>
 
@@ -15,7 +16,6 @@ struct game
 	// 0 1 2
 	// 3 4 5
 	// 6 7 8
-
 	// bits [0, 9): player 1, [16, 25): player 2
 	typedef std::uint32_t state;
 
@@ -23,6 +23,8 @@ struct game
 	static constexpr std::size_t DIMENSIONS = 18;
 
 	[[nodiscard]] static constexpr std::size_t moves(state st, std::span<state, MAX_BRANCH> dest) noexcept;
+
+	[[nodiscard]] static constexpr std::size_t named_moves(state st, std::span<std::pair<std::string, state>, MAX_BRANCH> dest) noexcept;
 
 	[[nodiscard]] static constexpr void flip(state &st) noexcept;
 
@@ -54,6 +56,23 @@ private:
 		if ((st & bits) == 0)
 		{
 			dest[pos] = st | (bits & 0xffffu);
+			pos++;
+		}
+	}
+	return pos;
+}
+
+
+[[nodiscard]] constexpr std::size_t game::named_moves(game::state st, std::span<std::pair<std::string, game::state>, MAX_BRANCH> dest) noexcept
+{
+	std::size_t pos = 0;
+	for (std::size_t i = 0; i < 9; i++)
+	{
+		state bits = 0x10001u << i;
+		if ((st & bits) == 0)
+		{
+			dest[pos].first = std::to_string(i + 1);
+			dest[pos].second = st | (bits & 0xffffu);
 			pos++;
 		}
 	}
