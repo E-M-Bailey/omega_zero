@@ -34,6 +34,8 @@ struct game
 	template<std::floating_point F>
 	[[nodiscard]] static constexpr void encode(state st, std::span<F, DIMENSIONS> dest) noexcept;
 
+	[[nodiscard]] static constexpr std::size_t hash(state st) noexcept;
+
 private:
 	static constexpr std::uint32_t WINS[]
 	{
@@ -113,6 +115,11 @@ template<std::floating_point F>
 	{
 		dest[i - (16 - MAX_BRANCH)] = (st >> i) & 1;
 	}
+}
+
+[[nodiscard]] constexpr std::size_t game::hash(game::state st) noexcept
+{
+	return st;
 }
 
 }
