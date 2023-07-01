@@ -16,15 +16,16 @@ struct game
 	// 0 1 2
 	// 3 4 5
 	// 6 7 8
+
 	// bits [0, 9): player 1, [16, 25): player 2
 	typedef std::uint32_t state;
 
-	static constexpr std::size_t MAX_BRANCH = 9;
-	static constexpr std::size_t DIMENSIONS = 18;
+	static constexpr int MAX_BRANCH = 9;
+	static constexpr int DIMENSIONS = 2 * MAX_BRANCH;
 
-	[[nodiscard]] static constexpr std::size_t moves(state st, std::span<state, MAX_BRANCH> dest) noexcept;
+	[[nodiscard]] static constexpr int moves(state st, std::span<state, MAX_BRANCH> dest) noexcept;
 
-	[[nodiscard]] static constexpr std::size_t named_moves(state st, std::span<std::pair<std::string, state>, MAX_BRANCH> dest) noexcept;
+	[[nodiscard]] static constexpr int named_moves(state st, std::span<std::pair<std::string, state>, MAX_BRANCH> dest) noexcept;
 
 	[[nodiscard]] static constexpr void flip(state &st) noexcept;
 
@@ -47,10 +48,10 @@ private:
 	};
 };
 
-[[nodiscard]] constexpr std::size_t game::moves(game::state st, std::span<game::state, game::MAX_BRANCH> dest) noexcept
+[[nodiscard]] constexpr int game::moves(game::state st, std::span<game::state, game::MAX_BRANCH> dest) noexcept
 {
-	std::size_t pos = 0;
-	for (std::size_t i = 0; i < 9; i++)
+	int pos = 0;
+	for (int i = 0; i < 9; i++)
 	{
 		state bits = 0x10001u << i;
 		if ((st & bits) == 0)
@@ -63,10 +64,10 @@ private:
 }
 
 
-[[nodiscard]] constexpr std::size_t game::named_moves(game::state st, std::span<std::pair<std::string, game::state>, MAX_BRANCH> dest) noexcept
+[[nodiscard]] constexpr int game::named_moves(game::state st, std::span<std::pair<std::string, game::state>, MAX_BRANCH> dest) noexcept
 {
-	std::size_t pos = 0;
-	for (std::size_t i = 0; i < 9; i++)
+	int pos = 0;
+	for (int i = 0; i < 9; i++)
 	{
 		state bits = 0x10001u << i;
 		if ((st & bits) == 0)
@@ -104,13 +105,13 @@ private:
 template<std::floating_point F>
 [[nodiscard]] constexpr void game::encode(game::state st, std::span<F, game::DIMENSIONS> dest) noexcept
 {
-	for (std::size_t i = 0; i < 9; i++)
+	for (int i = 0; i < MAX_BRANCH; i++)
 	{
 		dest[i] = (st >> i) & 1;
 	}
-	for (std::size_t i = 16; i < 25; i++)
+	for (int i = 16; i < 16 + MAX_BRANCH; i++)
 	{
-		dest[i - 5] = (st >> i) & 1;
+		dest[i - (16 - MAX_BRANCH)] = (st >> i) & 1;
 	}
 }
 
