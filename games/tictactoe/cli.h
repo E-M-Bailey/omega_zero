@@ -27,7 +27,7 @@ void cli::display(std::ostream &os, game::state st)
 		"4│5│6\n"
 		"─┼─┼─\n"
 		"7│8│9\n";
-	char buf[std::size(STR)];
+	static char buf[std::size(STR)];
 	std::strcpy(buf, STR);
 
 	char *ptr = buf;
@@ -54,8 +54,9 @@ void cli::display(std::ostream &os, game::state st)
 std::optional<game::state> cli::parse(std::istream &is, game::state st)
 {
 	static std::string str;
+	static std::pair<std::string, game::state> options[game::MAX_BRANCH];
+
 	is >> str;
-	std::pair<std::string, game::state> options[game::MAX_BRANCH];
 	int num = game::named_moves(st, options);
 	for (int i = 0; i < num; i++)
 	{
