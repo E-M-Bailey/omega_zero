@@ -8,7 +8,7 @@
 #include <tuple>
 #include <utility>
 
-namespace tictactoe
+namespace games::tictactoe
 {
 
 struct game

@@ -9,7 +9,7 @@
 
 #include "game.h"
 
-namespace tictactoe
+namespace games::tictactoe
 {
 
 struct cli
